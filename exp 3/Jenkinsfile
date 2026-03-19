@@ -1,0 +1,40 @@
+pipeline {
+
+    agent any
+
+    parameters {
+        choice(name: 'ML_FRAMEWORK',
+        choices: ['sklearn', 'tensorflow', 'pytorch'],
+        description: 'Select ML framework')
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('Train Model') {
+            steps {
+                script {
+                    def scriptName = "src/train_${params.ML_FRAMEWORK}.py"
+                    sh "python3 ${scriptName}"
+                }
+            }
+        }
+
+        stage('Archive Models') {
+            steps {
+                archiveArtifacts artifacts: 'models/**/*'
+            }
+        }
+    }
+}
